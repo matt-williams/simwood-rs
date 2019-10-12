@@ -1,4 +1,4 @@
-//! Server implementation of openapi_client.
+//! Server implementation of simwood_rs.
 
 #![allow(unused_imports)]
 
@@ -9,7 +9,7 @@ use std::marker::PhantomData;
 use swagger;
 use swagger::{Has, XSpanIdString};
 
-use openapi_client::{Api, ApiError,
+use simwood_rs::{Api, ApiError,
                       GetAccountTypeResponse,
                       DeleteAllocatedNumberResponse,
                       GetAllocatedNumberResponse,
@@ -27,7 +27,7 @@ use openapi_client::{Api, ApiError,
                       GetMyIpResponse,
                       GetTimeResponse
 };
-use openapi_client::models;
+use simwood_rs::models;
 
 #[derive(Copy, Clone)]
 pub struct Server<C> {

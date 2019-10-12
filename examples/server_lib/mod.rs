@@ -1,4 +1,4 @@
-//! Main library entry point for openapi_client implementation.
+//! Main library entry point for simwood_rs implementation.
 
 mod server;
 
@@ -11,7 +11,7 @@ use std::io;
 use std::clone::Clone;
 use std::marker::PhantomData;
 use hyper;
-use openapi_client;
+use simwood_rs;
 use swagger::{Has, XSpanIdString};
 use swagger::auth::Authorization;
 
@@ -29,10 +29,10 @@ impl<C> hyper::server::NewService for NewService<C> where C: Has<XSpanIdString> 
     type Request = (hyper::Request, C);
     type Response = hyper::Response;
     type Error = hyper::Error;
-    type Instance = openapi_client::server::Service<server::Server<C>, C>;
+    type Instance = simwood_rs::server::Service<server::Server<C>, C>;
 
     /// Instantiate a new server.
     fn new_service(&self) -> io::Result<Self::Instance> {
-        Ok(openapi_client::server::Service::new(server::Server::new()))
+        Ok(simwood_rs::server::Service::new(server::Server::new()))
     }
 }

@@ -1,10 +1,10 @@
-//! Main binary entry point for openapi_client implementation.
+//! Main binary entry point for simwood_rs implementation.
 
 #![allow(missing_docs)]
 
 // Imports required by this file.
 // extern crate <name of this crate>;
-extern crate openapi_client;
+extern crate simwood_rs;
 extern crate swagger;
 extern crate hyper;
 extern crate openssl;
@@ -14,7 +14,7 @@ extern crate tokio_tls;
 extern crate clap;
 
 // Imports required by server library.
-// extern crate openapi_client;
+// extern crate simwood_rs;
 // extern crate swagger;
 extern crate futures;
 extern crate chrono;
@@ -54,7 +54,7 @@ fn main() {
         .get_matches();
 
     let service_fn =
-        openapi_client::server::context::NewAddContext::<_, EmptyContext>::new(
+        simwood_rs::server::context::NewAddContext::<_, EmptyContext>::new(
             AllowAllAuthenticator::new(
                 server_lib::NewService::new(),
                 "cosmo"
