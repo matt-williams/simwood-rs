@@ -1,0 +1,802 @@
+openapi: 3.0.2
+info:
+  contact:
+    name: Simwood Support Centre
+    url: https://support.simwood.com/
+  description: The Simwood Customer API ("Application Programming Interface") is a
+    way for your own back-office systems and web sites to seamlessly integrate with
+    Simwood and manage your wholesale telephony account and services.
+  termsOfService: https://simwood.com/docs/simwood_aup.pdf
+  title: Simwood v3
+  version: 1.0.0
+externalDocs:
+  description: Simwood Customer API v3 documentation
+  url: https://simwood.com/docs/simwood_apiv3.pdf
+servers:
+- url: https://api.simwood.com/v3
+tags:
+- name: account-management
+- name: outbound-voice
+- name: numbers
+- name: tools
+- name: files
+paths:
+  /tools/myip:
+    get:
+      operationId: getMyIp
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyIp'
+          description: Success
+      summary: Return your external IP address, as seen by the Simwood API
+      tags:
+      - tools
+  /tools/time:
+    get:
+      operationId: getTime
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Time'
+          description: Success
+      summary: Returns the current timestamp
+      tags:
+      - tools
+  /accounts/{account}/type:
+    get:
+      operationId: getAccountType
+      parameters:
+      - explode: false
+        in: path
+        name: account
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountTypeResponse'
+          description: Success
+      security:
+      - BasicAuth: []
+      summary: Get your current account type, and limitations
+      tags:
+      - account-management
+  /voice/{account}/outbound:
+    get:
+      operationId: getOutboundTrunks
+      parameters:
+      - explode: false
+        in: path
+        name: account
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutboundTrunksResponse'
+          description: Success
+      security:
+      - BasicAuth: []
+      summary: List all active outbound trunks
+      tags:
+      - outbound-voice
+  /voice/{account}/outbound/{trunk}:
+    delete:
+      operationId: deleteOutboundTrunk
+      parameters:
+      - explode: false
+        in: path
+        name: account
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: trunk
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          description: Success
+      security:
+      - BasicAuth: []
+      summary: Delete the trunk
+      tags:
+      - outbound-voice
+    get:
+      operationId: getOutboundTrunk
+      parameters:
+      - explode: false
+        in: path
+        name: account
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: trunk
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutboundTrunk'
+          description: Success
+      security:
+      - BasicAuth: []
+      summary: Request information of specified trunk
+      tags:
+      - outbound-voice
+    put:
+      operationId: putOutboundTrunk
+      parameters:
+      - explode: false
+        in: path
+        name: account
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: trunk
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OutboundTrunk'
+        description: Trunk to create or update
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutboundTrunk'
+          description: Success
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+          description: Failure
+      security:
+      - BasicAuth: []
+      summary: Create new trunk or update existing trunk
+      tags:
+      - outbound-voice
+  /voice/{account}/outbound/{trunk}/acl:
+    get:
+      operationId: getOutboundAclIps
+      parameters:
+      - explode: false
+        in: path
+        name: account
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: trunk
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutboundAclIps'
+          description: Success
+      security:
+      - BasicAuth: []
+      summary: Request information of specified trunk
+      tags:
+      - outbound-voice
+  /voice/{account}/outbound/{trunk}/acl/{ip}:
+    delete:
+      operationId: deleteOutboundAclIp
+      parameters:
+      - explode: false
+        in: path
+        name: account
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: trunk
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: ip
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          description: Success
+      security:
+      - BasicAuth: []
+      summary: Remove IP from ACL-based trunk
+      tags:
+      - outbound-voice
+    put:
+      operationId: putOutboundAclIp
+      parameters:
+      - explode: false
+        in: path
+        name: account
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: trunk
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: ip
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          description: Success
+      security:
+      - BasicAuth: []
+      summary: Add IP to ACL-based trunk
+      tags:
+      - outbound-voice
+  /numbers/{account}/ranges:
+    get:
+      operationId: getNumberRanges
+      parameters:
+      - explode: false
+        in: path
+        name: account
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NumberRangesResponse'
+          description: Success
+      security:
+      - BasicAuth: []
+      summary: Retrieves a list of all available number ranges, including descriptions
+      tags:
+      - numbers
+  /numbers/{account}/available/{tier}/{number}:
+    get:
+      operationId: getAvailableNumbers
+      parameters:
+      - explode: false
+        in: path
+        name: account
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: tier
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: number
+        required: true
+        schema:
+          type: integer
+        style: simple
+      - explode: true
+        in: query
+        name: pattern
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailableNumbersResponse'
+          description: Success
+      security:
+      - BasicAuth: []
+      summary: Returns 1,10 or 100 numbers available for allocation matching the pattern
+        specified
+      tags:
+      - numbers
+  /numbers/{account}/allocated/all:
+    post:
+      operationId: getAllocatedNumbers
+      parameters:
+      - explode: false
+        in: path
+        name: account
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AllocatedNumbersResponse'
+          description: Success
+      security:
+      - BasicAuth: []
+      summary: Request a report of all current allocated numbers on account
+      tags:
+      - numbers
+  /numbers/{account}/allocated/{number}:
+    delete:
+      operationId: deleteAllocatedNumber
+      parameters:
+      - explode: false
+        in: path
+        name: account
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: number
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          description: Success
+        404:
+          description: Number not allocated
+      security:
+      - BasicAuth: []
+      summary: De-configure and irrevocably remove number from account
+      tags:
+      - numbers
+    get:
+      operationId: getAllocatedNumber
+      parameters:
+      - explode: false
+        in: path
+        name: account
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: number
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AllocatedNumberResponse'
+          description: Success
+        404:
+          description: Number not allocated
+      security:
+      - BasicAuth: []
+      summary: Return configuration information on allocated number
+      tags:
+      - numbers
+    put:
+      operationId: putAllocatedNumber
+      parameters:
+      - explode: false
+        in: path
+        name: account
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: number
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          description: Success
+        404:
+          description: Number not available
+      security:
+      - BasicAuth: []
+      summary: Allocate an available number to the account
+      tags:
+      - numbers
+components:
+  schemas:
+    MyIp:
+      example:
+        ip: ip
+      properties:
+        ip:
+          type: string
+      required:
+      - ip
+      type: object
+    Time:
+      example:
+        api: api
+        rfc: rfc
+        timestamp: 0
+      properties:
+        api:
+          type: string
+        rfc:
+          type: string
+        timestamp:
+          format: int32
+          type: integer
+      required:
+      - api
+      - rfc
+      - timestamp
+      type: object
+    AccountTypeResponse:
+      example:
+        data:
+          account_type: account_type
+          channel_limit: 6
+          number_limit: 0
+          min_prepay: 1
+        success: true
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/AccountType'
+      required:
+      - data
+      - success
+      type: object
+    AccountType:
+      example:
+        account_type: account_type
+        channel_limit: 6
+        number_limit: 0
+        min_prepay: 1
+      properties:
+        account_type:
+          type: string
+        number_limit:
+          type: integer
+        channel_limit:
+          type: integer
+        min_prepay:
+          type: integer
+      required:
+      - account_type
+      type: object
+    OutboundTrunksResponse:
+      items:
+        $ref: '#/components/schemas/OutboundTrunkSummary'
+      type: array
+    OutboundTrunkSummary:
+      properties:
+        trunk:
+          type: string
+        serviceLevel:
+          type: string
+        type:
+          type: string
+      required:
+      - serviceLevel
+      - trunk
+      - type
+      type: object
+    OutboundTrunk:
+      example:
+        limit_concurrent_out: limit_concurrent_out
+        enabled_out: enabled_out
+        trunk: trunk
+        type: type
+        enabled_in: enabled_in
+        user: user
+        cli_force_default: cli_force_default
+        enabled: enabled
+        limit_rate_out_international_hotspot: limit_rate_out_international_hotspot
+        quality: quality
+        limit_rate_out: limit_rate_out
+      properties:
+        trunk:
+          type: string
+        type:
+          type: string
+        enabled:
+          type: string
+        enabled_in:
+          type: string
+        enabled_out:
+          type: string
+        user:
+          type: string
+        quality:
+          type: string
+        limit_concurrent_out:
+          type: string
+        limit_rate_out:
+          type: string
+        limit_rate_out_international_hotspot:
+          type: string
+        cli_force_default:
+          type: string
+      type: object
+    OutboundAclIps:
+      items:
+        $ref: '#/components/schemas/OutboundAclIp'
+      type: array
+    OutboundAclIp:
+      properties:
+        ip:
+          type: string
+        timestamp:
+          type: string
+      type: object
+    NumberRangesResponse:
+      example:
+        data:
+        - chargeband: chargeband
+          prefix: prefix
+          description: description
+          sabc: sabc
+          id: id
+        - chargeband: chargeband
+          prefix: prefix
+          description: description
+          sabc: sabc
+          id: id
+        success: true
+      properties:
+        success:
+          type: boolean
+        data:
+          items:
+            $ref: '#/components/schemas/NumberRange'
+          type: array
+      required:
+      - data
+      - success
+      type: object
+    NumberRange:
+      example:
+        chargeband: chargeband
+        prefix: prefix
+        description: description
+        sabc: sabc
+        id: id
+      properties:
+        id:
+          type: string
+        prefix:
+          type: string
+        sabc:
+          type: string
+        description:
+          type: string
+        chargeband:
+          type: string
+      required:
+      - chargeband
+      - description
+      - id
+      - prefix
+      - sabc
+      type: object
+    AvailableNumbersResponse:
+      items:
+        $ref: '#/components/schemas/AvailableNumber'
+      type: array
+    AvailableNumber:
+      properties:
+        country_code:
+          type: string
+        number:
+          type: string
+        block:
+          type: string
+        bill_class:
+          type: string
+        SMS:
+          type: integer
+        recommended_gold_premium:
+          type: number
+        wholesale_gold_premium:
+          type: number
+      type: object
+    AllocatedNumbersResponse:
+      example:
+        format: format
+        link: link
+        type: type
+        account: account
+        hash: hash
+        include_mobile_ott: true
+      properties:
+        type:
+          type: string
+        account:
+          type: string
+        format:
+          type: string
+        hash:
+          type: string
+        link:
+          type: string
+        include_mobile_ott:
+          type: boolean
+      required:
+      - account
+      - format
+      - hash
+      - link
+      - type
+      type: object
+    AllocatedNumberResponse:
+      example:
+        voice:
+          link: link
+        sms:
+          link: link
+        999:
+          link: link
+        basic:
+          bill_class: bill_class
+          country_code: country_code
+          number: number
+          link: link
+          SMS: 0
+          block: block
+        fax:
+          link: link
+      properties:
+        basic:
+          $ref: '#/components/schemas/AllocatedNumberBasic'
+        voice:
+          $ref: '#/components/schemas/AllocatedNumberVoice'
+        fax:
+          $ref: '#/components/schemas/AllocatedNumberFax'
+        sms:
+          $ref: '#/components/schemas/AllocatedNumberSms'
+        999:
+          $ref: '#/components/schemas/AllocatedNumber999'
+      required:
+      - "999"
+      - basic
+      - fax
+      - sms
+      - voice
+      type: object
+    AllocatedNumberBasic:
+      example:
+        bill_class: bill_class
+        country_code: country_code
+        number: number
+        link: link
+        SMS: 0
+        block: block
+      properties:
+        link:
+          type: string
+        country_code:
+          type: string
+        number:
+          type: string
+        block:
+          type: string
+        bill_class:
+          type: string
+        SMS:
+          type: integer
+      required:
+      - country_code
+      - link
+      - number
+      type: object
+    AllocatedNumberVoice:
+      example:
+        link: link
+      properties:
+        link:
+          type: string
+      required:
+      - link
+      type: object
+    AllocatedNumberFax:
+      example:
+        link: link
+      properties:
+        link:
+          type: string
+      required:
+      - link
+      type: object
+    AllocatedNumberSms:
+      example:
+        link: link
+      properties:
+        link:
+          type: string
+      required:
+      - link
+      type: object
+    AllocatedNumber999:
+      example:
+        link: link
+      properties:
+        link:
+          type: string
+      required:
+      - link
+      type: object
+    Errors:
+      properties:
+        errors:
+          items:
+            type: string
+          type: array
+      required:
+      - errors
+      type: object
+  securitySchemes:
+    BasicAuth:
+      scheme: basic
+      type: http
+
