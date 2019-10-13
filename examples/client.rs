@@ -21,11 +21,14 @@ use simwood_rs::{ApiNoContext, ContextWrapperExt,
                       ApiError,
                       GetAccountTypeResponse,
                       DeleteAllocatedNumberResponse,
+                      DeleteNumberConfigResponse,
                       GetAllocatedNumberResponse,
                       GetAllocatedNumbersResponse,
                       GetAvailableNumbersResponse,
+                      GetNumberConfigResponse,
                       GetNumberRangesResponse,
                       PutAllocatedNumberResponse,
+                      PutNumberConfigResponse,
                       DeleteOutboundAclIpResponse,
                       DeleteOutboundTrunkResponse,
                       GetOutboundAclIpsResponse,
@@ -45,18 +48,20 @@ fn main() {
             .possible_values(&[
     "GetAccountType",
     "DeleteAllocatedNumber",
+    "DeleteNumberConfig",
     "GetAllocatedNumber",
     "GetAllocatedNumbers",
     "GetAvailableNumbers",
+    "GetNumberConfig",
     "GetNumberRanges",
     "PutAllocatedNumber",
+    "PutNumberConfig",
     "DeleteOutboundAclIp",
     "DeleteOutboundTrunk",
     "GetOutboundAclIps",
     "GetOutboundTrunk",
     "GetOutboundTrunks",
     "PutOutboundAclIp",
-    "PutOutboundTrunk",
     "GetMyIp",
     "GetTime",
 ])
@@ -109,6 +114,11 @@ fn main() {
             println!("{:?} (X-Span-ID: {:?})", result, (client.context() as &Has<XSpanIdString>).get().clone());
          },
 
+        Some("DeleteNumberConfig") => {
+            let result = core.run(client.delete_number_config("account_example".to_string(), "number_example".to_string()));
+            println!("{:?} (X-Span-ID: {:?})", result, (client.context() as &Has<XSpanIdString>).get().clone());
+         },
+
         Some("GetAllocatedNumber") => {
             let result = core.run(client.get_allocated_number("account_example".to_string(), "number_example".to_string()));
             println!("{:?} (X-Span-ID: {:?})", result, (client.context() as &Has<XSpanIdString>).get().clone());
@@ -120,7 +130,12 @@ fn main() {
          },
 
         Some("GetAvailableNumbers") => {
-            let result = core.run(client.get_available_numbers("account_example".to_string(), "tier_example".to_string(), 56, Some("pattern_example".to_string())));
+            let result = core.run(client.get_available_numbers("account_example".to_string(), "all".to_string(), 1, Some("pattern_example".to_string())));
+            println!("{:?} (X-Span-ID: {:?})", result, (client.context() as &Has<XSpanIdString>).get().clone());
+         },
+
+        Some("GetNumberConfig") => {
+            let result = core.run(client.get_number_config("account_example".to_string(), "number_example".to_string()));
             println!("{:?} (X-Span-ID: {:?})", result, (client.context() as &Has<XSpanIdString>).get().clone());
          },
 
@@ -131,6 +146,11 @@ fn main() {
 
         Some("PutAllocatedNumber") => {
             let result = core.run(client.put_allocated_number("account_example".to_string(), "number_example".to_string()));
+            println!("{:?} (X-Span-ID: {:?})", result, (client.context() as &Has<XSpanIdString>).get().clone());
+         },
+
+        Some("PutNumberConfig") => {
+            let result = core.run(client.put_number_config("account_example".to_string(), "number_example".to_string(), None));
             println!("{:?} (X-Span-ID: {:?})", result, (client.context() as &Has<XSpanIdString>).get().clone());
          },
 
@@ -164,10 +184,11 @@ fn main() {
             println!("{:?} (X-Span-ID: {:?})", result, (client.context() as &Has<XSpanIdString>).get().clone());
          },
 
-        Some("PutOutboundTrunk") => {
-            let result = core.run(client.put_outbound_trunk("account_example".to_string(), "trunk_example".to_string(), None));
-            println!("{:?} (X-Span-ID: {:?})", result, (client.context() as &Has<XSpanIdString>).get().clone());
-         },
+        // Disabled because there's no example.
+        // Some("PutOutboundTrunk") => {
+        //     let result = core.run(client.put_outbound_trunk("account_example".to_string(), "trunk_example".to_string(), ???));
+        //     println!("{:?} (X-Span-ID: {:?})", result, (client.context() as &Has<XSpanIdString>).get().clone());
+        //  },
 
         Some("GetMyIp") => {
             let result = core.run(client.get_my_ip());

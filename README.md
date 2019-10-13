@@ -14,7 +14,7 @@ To see how to make this your own, look here:
 [README]((https://openapi-generator.tech))
 
 - API version: 1.0.0
-- Build date: 2019-10-12T16:17:12.675+01:00[Europe/London]
+- Build date: 2019-10-13T11:28:33.423+01:00[Europe/London]
 
 For more information, please visit [https://support.simwood.com/](https://support.simwood.com/)
 
@@ -63,11 +63,14 @@ To run a client, follow one of the following simple steps:
 ```
 cargo run --example client GetAccountType
 cargo run --example client DeleteAllocatedNumber
+cargo run --example client DeleteNumberConfig
 cargo run --example client GetAllocatedNumber
 cargo run --example client GetAllocatedNumbers
 cargo run --example client GetAvailableNumbers
+cargo run --example client GetNumberConfig
 cargo run --example client GetNumberRanges
 cargo run --example client PutAllocatedNumber
+cargo run --example client PutNumberConfig
 cargo run --example client DeleteOutboundAclIp
 cargo run --example client DeleteOutboundTrunk
 cargo run --example client GetOutboundAclIps
@@ -112,11 +115,14 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**getAccountType**](docs/account_management_api.md#getAccountType) | **GET** /accounts/{account}/type | Get your current account type, and limitations
 [**deleteAllocatedNumber**](docs/numbers_api.md#deleteAllocatedNumber) | **DELETE** /numbers/{account}/allocated/{number} | De-configure and irrevocably remove number from account
+[**deleteNumberConfig**](docs/numbers_api.md#deleteNumberConfig) | **DELETE** /numbers/{account}/allocated/{number}/config | De-configure the configuration of number
 [**getAllocatedNumber**](docs/numbers_api.md#getAllocatedNumber) | **GET** /numbers/{account}/allocated/{number} | Return configuration information on allocated number
 [**getAllocatedNumbers**](docs/numbers_api.md#getAllocatedNumbers) | **POST** /numbers/{account}/allocated/all | Request a report of all current allocated numbers on account
 [**getAvailableNumbers**](docs/numbers_api.md#getAvailableNumbers) | **GET** /numbers/{account}/available/{tier}/{number} | Returns 1,10 or 100 numbers available for allocation matching the pattern specified
+[**getNumberConfig**](docs/numbers_api.md#getNumberConfig) | **GET** /numbers/{account}/allocated/{number}/config | Return configuration information on allocated number
 [**getNumberRanges**](docs/numbers_api.md#getNumberRanges) | **GET** /numbers/{account}/ranges | Retrieves a list of all available number ranges, including descriptions
 [**putAllocatedNumber**](docs/numbers_api.md#putAllocatedNumber) | **PUT** /numbers/{account}/allocated/{number} | Allocate an available number to the account
+[**putNumberConfig**](docs/numbers_api.md#putNumberConfig) | **PUT** /numbers/{account}/allocated/{number}/config | Replace active configuration for number
 [**deleteOutboundAclIp**](docs/outbound_voice_api.md#deleteOutboundAclIp) | **DELETE** /voice/{account}/outbound/{trunk}/acl/{ip} | Remove IP from ACL-based trunk
 [**deleteOutboundTrunk**](docs/outbound_voice_api.md#deleteOutboundTrunk) | **DELETE** /voice/{account}/outbound/{trunk} | Delete the trunk
 [**getOutboundAclIps**](docs/outbound_voice_api.md#getOutboundAclIps) | **GET** /voice/{account}/outbound/{trunk}/acl | Request information of specified trunk
@@ -143,6 +149,8 @@ Method | HTTP request | Description
  - [AvailableNumbersResponse](docs/AvailableNumbersResponse.md)
  - [Errors](docs/Errors.md)
  - [MyIp](docs/MyIp.md)
+ - [NumberConfig](docs/NumberConfig.md)
+ - [NumberConfigOptions](docs/NumberConfigOptions.md)
  - [NumberRange](docs/NumberRange.md)
  - [NumberRangesResponse](docs/NumberRangesResponse.md)
  - [OutboundAclIp](docs/OutboundAclIp.md)
@@ -150,6 +158,8 @@ Method | HTTP request | Description
  - [OutboundTrunk](docs/OutboundTrunk.md)
  - [OutboundTrunkSummary](docs/OutboundTrunkSummary.md)
  - [OutboundTrunksResponse](docs/OutboundTrunksResponse.md)
+ - [PutNumberConfigResponse](docs/PutNumberConfigResponse.md)
+ - [RoutingEntry](docs/RoutingEntry.md)
  - [Time](docs/Time.md)
 
 

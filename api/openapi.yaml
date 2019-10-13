@@ -171,6 +171,7 @@ paths:
             schema:
               $ref: '#/components/schemas/OutboundTrunk'
         description: Trunk to create or update
+        required: true
       responses:
         200:
           content:
@@ -323,6 +324,7 @@ paths:
         name: tier
         required: true
         schema:
+          example: all
           type: string
         style: simple
       - explode: false
@@ -330,6 +332,7 @@ paths:
         name: number
         required: true
         schema:
+          example: 1
           type: integer
         style: simple
       - explode: true
@@ -461,6 +464,102 @@ paths:
       summary: Allocate an available number to the account
       tags:
       - numbers
+  /numbers/{account}/allocated/{number}/config:
+    delete:
+      operationId: deleteNumberConfig
+      parameters:
+      - explode: false
+        in: path
+        name: account
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: number
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          description: Success
+        404:
+          description: Number not allocated
+      security:
+      - BasicAuth: []
+      summary: De-configure the configuration of number
+      tags:
+      - numbers
+    get:
+      operationId: getNumberConfig
+      parameters:
+      - explode: false
+        in: path
+        name: account
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: number
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NumberConfig'
+          description: Success
+        404:
+          description: Number not allocated
+      security:
+      - BasicAuth: []
+      summary: Return configuration information on allocated number
+      tags:
+      - numbers
+    put:
+      operationId: putNumberConfig
+      parameters:
+      - explode: false
+        in: path
+        name: account
+        required: true
+        schema:
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: number
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NumberConfig'
+        description: New number configuration
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PutNumberConfigResponse'
+          description: Success
+        404:
+          description: Number not allocated
+      security:
+      - BasicAuth: []
+      summary: Replace active configuration for number
+      tags:
+      - numbers
 components:
   schemas:
     MyIp:
@@ -504,7 +603,6 @@ components:
         data:
           $ref: '#/components/schemas/AccountType'
       required:
-      - data
       - success
       type: object
     AccountType:
@@ -612,7 +710,6 @@ components:
             $ref: '#/components/schemas/NumberRange'
           type: array
       required:
-      - data
       - success
       type: object
     NumberRange:
@@ -786,7 +883,94 @@ components:
       required:
       - link
       type: object
+    NumberConfig:
+      example:
+        routing:
+          key:
+          - - endpoint: endpoint
+              sdes: none
+              type: sip
+            - endpoint: endpoint
+              sdes: none
+              type: sip
+          - - endpoint: endpoint
+              sdes: none
+              type: sip
+            - endpoint: endpoint
+              sdes: none
+              type: sip
+        options:
+          acr: true
+          beta_in: true
+          icr: true
+          block_payphone: true
+          enabled: true
+      properties:
+        options:
+          $ref: '#/components/schemas/NumberConfigOptions'
+        routing:
+          additionalProperties:
+            items:
+              items:
+                $ref: '#/components/schemas/RoutingEntry'
+              type: array
+            type: array
+          type: object
+      type: object
+    NumberConfigOptions:
+      example:
+        acr: true
+        beta_in: true
+        icr: true
+        block_payphone: true
+        enabled: true
+      properties:
+        enabled:
+          type: boolean
+        block_payphone:
+          type: boolean
+        acr:
+          type: boolean
+        icr:
+          type: boolean
+        beta_in:
+          type: boolean
+      type: object
+    RoutingEntry:
+      example:
+        endpoint: endpoint
+        sdes: none
+        type: sip
+      properties:
+        type:
+          default: sip
+          type: string
+        endpoint:
+          type: string
+        sdes:
+          default: none
+          type: string
+      type: object
+    PutNumberConfigResponse:
+      example:
+        success: true
+        errors:
+          errors:
+          - errors
+          - errors
+      properties:
+        success:
+          type: boolean
+        errors:
+          $ref: '#/components/schemas/Errors'
+      required:
+      - success
+      type: object
     Errors:
+      example:
+        errors:
+        - errors
+        - errors
       properties:
         errors:
           items:

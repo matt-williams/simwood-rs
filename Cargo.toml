@@ -1,6 +1,6 @@
 [package]
 name = "simwood-rs"
-version = "1.0.0"
+version = "1.0.1"
 authors = []
 description = "The Simwood Customer API (\"Application Programming Interface\") is a way for your own back-office systems and web sites to seamlessly integrate with Simwood and manage your wholesale telephony account and services."
 license = "Unlicense"

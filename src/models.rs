@@ -48,15 +48,16 @@ pub struct AccountTypeResponse {
     pub success: bool,
 
     #[serde(rename = "data")]
-    pub data: models::AccountType,
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub data: Option<models::AccountType>,
 
 }
 
 impl AccountTypeResponse {
-    pub fn new(success: bool, data: models::AccountType, ) -> AccountTypeResponse {
+    pub fn new(success: bool, ) -> AccountTypeResponse {
         AccountTypeResponse {
             success: success,
-            data: data,
+            data: None,
         }
     }
 }
@@ -389,6 +390,67 @@ impl MyIp {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "conversion", derive(LabelledGeneric))]
+pub struct NumberConfig {
+    #[serde(rename = "options")]
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub options: Option<models::NumberConfigOptions>,
+
+    #[serde(rename = "routing")]
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub routing: Option<HashMap<String, Vec<Vec<models::RoutingEntry>>>>,
+
+}
+
+impl NumberConfig {
+    pub fn new() -> NumberConfig {
+        NumberConfig {
+            options: None,
+            routing: None,
+        }
+    }
+}
+
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "conversion", derive(LabelledGeneric))]
+pub struct NumberConfigOptions {
+    #[serde(rename = "enabled")]
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub enabled: Option<bool>,
+
+    #[serde(rename = "block_payphone")]
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub block_payphone: Option<bool>,
+
+    #[serde(rename = "acr")]
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub acr: Option<bool>,
+
+    #[serde(rename = "icr")]
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub icr: Option<bool>,
+
+    #[serde(rename = "beta_in")]
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub beta_in: Option<bool>,
+
+}
+
+impl NumberConfigOptions {
+    pub fn new() -> NumberConfigOptions {
+        NumberConfigOptions {
+            enabled: None,
+            block_payphone: None,
+            acr: None,
+            icr: None,
+            beta_in: None,
+        }
+    }
+}
+
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "conversion", derive(LabelledGeneric))]
 pub struct NumberRange {
     #[serde(rename = "id")]
     pub id: String,
@@ -427,15 +489,16 @@ pub struct NumberRangesResponse {
     pub success: bool,
 
     #[serde(rename = "data")]
-    pub data: Vec<models::NumberRange>,
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub data: Option<Vec<models::NumberRange>>,
 
 }
 
 impl NumberRangesResponse {
-    pub fn new(success: bool, data: Vec<models::NumberRange>, ) -> NumberRangesResponse {
+    pub fn new(success: bool, ) -> NumberRangesResponse {
         NumberRangesResponse {
             success: success,
-            data: data,
+            data: None,
         }
     }
 }
@@ -683,6 +746,56 @@ impl ::std::ops::DerefMut for OutboundTrunksResponse {
     }
 }
 
+
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "conversion", derive(LabelledGeneric))]
+pub struct PutNumberConfigResponse {
+    #[serde(rename = "success")]
+    pub success: bool,
+
+    #[serde(rename = "errors")]
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub errors: Option<models::Errors>,
+
+}
+
+impl PutNumberConfigResponse {
+    pub fn new(success: bool, ) -> PutNumberConfigResponse {
+        PutNumberConfigResponse {
+            success: success,
+            errors: None,
+        }
+    }
+}
+
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "conversion", derive(LabelledGeneric))]
+pub struct RoutingEntry {
+    #[serde(rename = "type")]
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub _type: Option<String>,
+
+    #[serde(rename = "endpoint")]
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub endpoint: Option<String>,
+
+    #[serde(rename = "sdes")]
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub sdes: Option<String>,
+
+}
+
+impl RoutingEntry {
+    pub fn new() -> RoutingEntry {
+        RoutingEntry {
+            _type: Some("sip".to_string()),
+            endpoint: None,
+            sdes: Some("none".to_string()),
+        }
+    }
+}
 
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

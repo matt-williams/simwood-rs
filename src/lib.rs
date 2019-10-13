@@ -67,6 +67,15 @@ pub enum DeleteAllocatedNumberResponse {
 }
 
 #[derive(Debug, PartialEq)]
+pub enum DeleteNumberConfigResponse {
+    /// Success
+    Success
+    ,
+    /// Number not allocated
+    NumberNotAllocated
+}
+
+#[derive(Debug, PartialEq)]
 pub enum GetAllocatedNumberResponse {
     /// Success
     Success
@@ -91,6 +100,16 @@ pub enum GetAvailableNumbersResponse {
 }
 
 #[derive(Debug, PartialEq)]
+pub enum GetNumberConfigResponse {
+    /// Success
+    Success
+    (models::NumberConfig)
+    ,
+    /// Number not allocated
+    NumberNotAllocated
+}
+
+#[derive(Debug, PartialEq)]
 pub enum GetNumberRangesResponse {
     /// Success
     Success
@@ -104,6 +123,16 @@ pub enum PutAllocatedNumberResponse {
     ,
     /// Number not available
     NumberNotAvailable
+}
+
+#[derive(Debug, PartialEq)]
+pub enum PutNumberConfigResponse {
+    /// Success
+    Success
+    (models::PutNumberConfigResponse)
+    ,
+    /// Number not allocated
+    NumberNotAllocated
 }
 
 #[derive(Debug, PartialEq)]
@@ -180,6 +209,9 @@ pub trait Api<C> {
     /// De-configure and irrevocably remove number from account
     fn delete_allocated_number(&self, account: String, number: String, context: &C) -> Box<Future<Item=DeleteAllocatedNumberResponse, Error=ApiError>>;
 
+    /// De-configure the configuration of number
+    fn delete_number_config(&self, account: String, number: String, context: &C) -> Box<Future<Item=DeleteNumberConfigResponse, Error=ApiError>>;
+
     /// Return configuration information on allocated number
     fn get_allocated_number(&self, account: String, number: String, context: &C) -> Box<Future<Item=GetAllocatedNumberResponse, Error=ApiError>>;
 
@@ -189,11 +221,17 @@ pub trait Api<C> {
     /// Returns 1,10 or 100 numbers available for allocation matching the pattern specified
     fn get_available_numbers(&self, account: String, tier: String, number: i32, pattern: Option<String>, context: &C) -> Box<Future<Item=GetAvailableNumbersResponse, Error=ApiError>>;
 
+    /// Return configuration information on allocated number
+    fn get_number_config(&self, account: String, number: String, context: &C) -> Box<Future<Item=GetNumberConfigResponse, Error=ApiError>>;
+
     /// Retrieves a list of all available number ranges, including descriptions
     fn get_number_ranges(&self, account: String, context: &C) -> Box<Future<Item=GetNumberRangesResponse, Error=ApiError>>;
 
     /// Allocate an available number to the account
     fn put_allocated_number(&self, account: String, number: String, context: &C) -> Box<Future<Item=PutAllocatedNumberResponse, Error=ApiError>>;
+
+    /// Replace active configuration for number
+    fn put_number_config(&self, account: String, number: String, number_config: Option<models::NumberConfig>, context: &C) -> Box<Future<Item=PutNumberConfigResponse, Error=ApiError>>;
 
     /// Remove IP from ACL-based trunk
     fn delete_outbound_acl_ip(&self, account: String, trunk: String, ip: String, context: &C) -> Box<Future<Item=DeleteOutboundAclIpResponse, Error=ApiError>>;
@@ -214,7 +252,7 @@ pub trait Api<C> {
     fn put_outbound_acl_ip(&self, account: String, trunk: String, ip: String, context: &C) -> Box<Future<Item=PutOutboundAclIpResponse, Error=ApiError>>;
 
     /// Create new trunk or update existing trunk
-    fn put_outbound_trunk(&self, account: String, trunk: String, outbound_trunk: Option<models::OutboundTrunk>, context: &C) -> Box<Future<Item=PutOutboundTrunkResponse, Error=ApiError>>;
+    fn put_outbound_trunk(&self, account: String, trunk: String, outbound_trunk: models::OutboundTrunk, context: &C) -> Box<Future<Item=PutOutboundTrunkResponse, Error=ApiError>>;
 
     /// Return your external IP address, as seen by the Simwood API
     fn get_my_ip(&self, context: &C) -> Box<Future<Item=GetMyIpResponse, Error=ApiError>>;
@@ -233,6 +271,9 @@ pub trait ApiNoContext {
     /// De-configure and irrevocably remove number from account
     fn delete_allocated_number(&self, account: String, number: String) -> Box<Future<Item=DeleteAllocatedNumberResponse, Error=ApiError>>;
 
+    /// De-configure the configuration of number
+    fn delete_number_config(&self, account: String, number: String) -> Box<Future<Item=DeleteNumberConfigResponse, Error=ApiError>>;
+
     /// Return configuration information on allocated number
     fn get_allocated_number(&self, account: String, number: String) -> Box<Future<Item=GetAllocatedNumberResponse, Error=ApiError>>;
 
@@ -242,11 +283,17 @@ pub trait ApiNoContext {
     /// Returns 1,10 or 100 numbers available for allocation matching the pattern specified
     fn get_available_numbers(&self, account: String, tier: String, number: i32, pattern: Option<String>) -> Box<Future<Item=GetAvailableNumbersResponse, Error=ApiError>>;
 
+    /// Return configuration information on allocated number
+    fn get_number_config(&self, account: String, number: String) -> Box<Future<Item=GetNumberConfigResponse, Error=ApiError>>;
+
     /// Retrieves a list of all available number ranges, including descriptions
     fn get_number_ranges(&self, account: String) -> Box<Future<Item=GetNumberRangesResponse, Error=ApiError>>;
 
     /// Allocate an available number to the account
     fn put_allocated_number(&self, account: String, number: String) -> Box<Future<Item=PutAllocatedNumberResponse, Error=ApiError>>;
+
+    /// Replace active configuration for number
+    fn put_number_config(&self, account: String, number: String, number_config: Option<models::NumberConfig>) -> Box<Future<Item=PutNumberConfigResponse, Error=ApiError>>;
 
     /// Remove IP from ACL-based trunk
     fn delete_outbound_acl_ip(&self, account: String, trunk: String, ip: String) -> Box<Future<Item=DeleteOutboundAclIpResponse, Error=ApiError>>;
@@ -267,7 +314,7 @@ pub trait ApiNoContext {
     fn put_outbound_acl_ip(&self, account: String, trunk: String, ip: String) -> Box<Future<Item=PutOutboundAclIpResponse, Error=ApiError>>;
 
     /// Create new trunk or update existing trunk
-    fn put_outbound_trunk(&self, account: String, trunk: String, outbound_trunk: Option<models::OutboundTrunk>) -> Box<Future<Item=PutOutboundTrunkResponse, Error=ApiError>>;
+    fn put_outbound_trunk(&self, account: String, trunk: String, outbound_trunk: models::OutboundTrunk) -> Box<Future<Item=PutOutboundTrunkResponse, Error=ApiError>>;
 
     /// Return your external IP address, as seen by the Simwood API
     fn get_my_ip(&self) -> Box<Future<Item=GetMyIpResponse, Error=ApiError>>;
@@ -301,6 +348,11 @@ impl<'a, T: Api<C>, C> ApiNoContext for ContextWrapper<'a, T, C> {
         self.api().delete_allocated_number(account, number, &self.context())
     }
 
+    /// De-configure the configuration of number
+    fn delete_number_config(&self, account: String, number: String) -> Box<Future<Item=DeleteNumberConfigResponse, Error=ApiError>> {
+        self.api().delete_number_config(account, number, &self.context())
+    }
+
     /// Return configuration information on allocated number
     fn get_allocated_number(&self, account: String, number: String) -> Box<Future<Item=GetAllocatedNumberResponse, Error=ApiError>> {
         self.api().get_allocated_number(account, number, &self.context())
@@ -316,6 +368,11 @@ impl<'a, T: Api<C>, C> ApiNoContext for ContextWrapper<'a, T, C> {
         self.api().get_available_numbers(account, tier, number, pattern, &self.context())
     }
 
+    /// Return configuration information on allocated number
+    fn get_number_config(&self, account: String, number: String) -> Box<Future<Item=GetNumberConfigResponse, Error=ApiError>> {
+        self.api().get_number_config(account, number, &self.context())
+    }
+
     /// Retrieves a list of all available number ranges, including descriptions
     fn get_number_ranges(&self, account: String) -> Box<Future<Item=GetNumberRangesResponse, Error=ApiError>> {
         self.api().get_number_ranges(account, &self.context())
@@ -324,6 +381,11 @@ impl<'a, T: Api<C>, C> ApiNoContext for ContextWrapper<'a, T, C> {
     /// Allocate an available number to the account
     fn put_allocated_number(&self, account: String, number: String) -> Box<Future<Item=PutAllocatedNumberResponse, Error=ApiError>> {
         self.api().put_allocated_number(account, number, &self.context())
+    }
+
+    /// Replace active configuration for number
+    fn put_number_config(&self, account: String, number: String, number_config: Option<models::NumberConfig>) -> Box<Future<Item=PutNumberConfigResponse, Error=ApiError>> {
+        self.api().put_number_config(account, number, number_config, &self.context())
     }
 
     /// Remove IP from ACL-based trunk
@@ -357,7 +419,7 @@ impl<'a, T: Api<C>, C> ApiNoContext for ContextWrapper<'a, T, C> {
     }
 
     /// Create new trunk or update existing trunk
-    fn put_outbound_trunk(&self, account: String, trunk: String, outbound_trunk: Option<models::OutboundTrunk>) -> Box<Future<Item=PutOutboundTrunkResponse, Error=ApiError>> {
+    fn put_outbound_trunk(&self, account: String, trunk: String, outbound_trunk: models::OutboundTrunk) -> Box<Future<Item=PutOutboundTrunkResponse, Error=ApiError>> {
         self.api().put_outbound_trunk(account, trunk, outbound_trunk, &self.context())
     }
 

@@ -35,11 +35,14 @@ use swagger::auth::Scopes;
 use {Api,
      GetAccountTypeResponse,
      DeleteAllocatedNumberResponse,
+     DeleteNumberConfigResponse,
      GetAllocatedNumberResponse,
      GetAllocatedNumbersResponse,
      GetAvailableNumbersResponse,
+     GetNumberConfigResponse,
      GetNumberRangesResponse,
      PutAllocatedNumberResponse,
+     PutNumberConfigResponse,
      DeleteOutboundAclIpResponse,
      DeleteOutboundTrunkResponse,
      GetOutboundAclIpsResponse,
@@ -65,6 +68,7 @@ mod paths {
             r"^/v3/accounts/(?P<account>[^/?#]*)/type$",
             r"^/v3/numbers/(?P<account>[^/?#]*)/allocated/all$",
             r"^/v3/numbers/(?P<account>[^/?#]*)/allocated/(?P<number>[^/?#]*)$",
+            r"^/v3/numbers/(?P<account>[^/?#]*)/allocated/(?P<number>[^/?#]*)/config$",
             r"^/v3/numbers/(?P<account>[^/?#]*)/available/(?P<tier>[^/?#]*)/(?P<number>[^/?#]*)$",
             r"^/v3/numbers/(?P<account>[^/?#]*)/ranges$",
             r"^/v3/tools/myip$",
@@ -87,29 +91,33 @@ mod paths {
     lazy_static! {
         pub static ref REGEX_NUMBERS_ACCOUNT_ALLOCATED_NUMBER: regex::Regex = regex::Regex::new(r"^/v3/numbers/(?P<account>[^/?#]*)/allocated/(?P<number>[^/?#]*)$").unwrap();
     }
-    pub static ID_NUMBERS_ACCOUNT_AVAILABLE_TIER_NUMBER: usize = 3;
+    pub static ID_NUMBERS_ACCOUNT_ALLOCATED_NUMBER_CONFIG: usize = 3;
+    lazy_static! {
+        pub static ref REGEX_NUMBERS_ACCOUNT_ALLOCATED_NUMBER_CONFIG: regex::Regex = regex::Regex::new(r"^/v3/numbers/(?P<account>[^/?#]*)/allocated/(?P<number>[^/?#]*)/config$").unwrap();
+    }
+    pub static ID_NUMBERS_ACCOUNT_AVAILABLE_TIER_NUMBER: usize = 4;
     lazy_static! {
         pub static ref REGEX_NUMBERS_ACCOUNT_AVAILABLE_TIER_NUMBER: regex::Regex = regex::Regex::new(r"^/v3/numbers/(?P<account>[^/?#]*)/available/(?P<tier>[^/?#]*)/(?P<number>[^/?#]*)$").unwrap();
     }
-    pub static ID_NUMBERS_ACCOUNT_RANGES: usize = 4;
+    pub static ID_NUMBERS_ACCOUNT_RANGES: usize = 5;
     lazy_static! {
         pub static ref REGEX_NUMBERS_ACCOUNT_RANGES: regex::Regex = regex::Regex::new(r"^/v3/numbers/(?P<account>[^/?#]*)/ranges$").unwrap();
     }
-    pub static ID_TOOLS_MYIP: usize = 5;
-    pub static ID_TOOLS_TIME: usize = 6;
-    pub static ID_VOICE_ACCOUNT_OUTBOUND: usize = 7;
+    pub static ID_TOOLS_MYIP: usize = 6;
+    pub static ID_TOOLS_TIME: usize = 7;
+    pub static ID_VOICE_ACCOUNT_OUTBOUND: usize = 8;
     lazy_static! {
         pub static ref REGEX_VOICE_ACCOUNT_OUTBOUND: regex::Regex = regex::Regex::new(r"^/v3/voice/(?P<account>[^/?#]*)/outbound$").unwrap();
     }
-    pub static ID_VOICE_ACCOUNT_OUTBOUND_TRUNK: usize = 8;
+    pub static ID_VOICE_ACCOUNT_OUTBOUND_TRUNK: usize = 9;
     lazy_static! {
         pub static ref REGEX_VOICE_ACCOUNT_OUTBOUND_TRUNK: regex::Regex = regex::Regex::new(r"^/v3/voice/(?P<account>[^/?#]*)/outbound/(?P<trunk>[^/?#]*)$").unwrap();
     }
-    pub static ID_VOICE_ACCOUNT_OUTBOUND_TRUNK_ACL: usize = 9;
+    pub static ID_VOICE_ACCOUNT_OUTBOUND_TRUNK_ACL: usize = 10;
     lazy_static! {
         pub static ref REGEX_VOICE_ACCOUNT_OUTBOUND_TRUNK_ACL: regex::Regex = regex::Regex::new(r"^/v3/voice/(?P<account>[^/?#]*)/outbound/(?P<trunk>[^/?#]*)/acl$").unwrap();
     }
-    pub static ID_VOICE_ACCOUNT_OUTBOUND_TRUNK_ACL_IP: usize = 10;
+    pub static ID_VOICE_ACCOUNT_OUTBOUND_TRUNK_ACL_IP: usize = 11;
     lazy_static! {
         pub static ref REGEX_VOICE_ACCOUNT_OUTBOUND_TRUNK_ACL_IP: regex::Regex = regex::Regex::new(r"^/v3/voice/(?P<account>[^/?#]*)/outbound/(?P<trunk>[^/?#]*)/acl/(?P<ip>[^/?#]*)$").unwrap();
     }
@@ -294,6 +302,78 @@ where
 
                                                 },
                                                 DeleteAllocatedNumberResponse::NumberNotAllocated
+
+
+                                                => {
+                                                    response.set_status(StatusCode::try_from(404).unwrap());
+
+                                                },
+                                            },
+                                            Err(_) => {
+                                                // Application code returned an error. This should not happen, as the implementation should
+                                                // return a valid response.
+                                                response.set_status(StatusCode::InternalServerError);
+                                                response.set_body("An internal error occurred");
+                                            },
+                                        }
+
+                                        future::ok(response)
+                                    }
+                                ))
+                        }}
+                }) as Box<Future<Item=Response, Error=Error>>
+            },
+
+            // DeleteNumberConfig - DELETE /numbers/{account}/allocated/{number}/config
+            &hyper::Method::Delete if path.matched(paths::ID_NUMBERS_ACCOUNT_ALLOCATED_NUMBER_CONFIG) => {
+                {
+                    let authorization = match (&context as &Has<Option<Authorization>>).get() {
+                        &Some(ref authorization) => authorization,
+                        &None => return Box::new(future::ok(Response::new()
+                                                .with_status(StatusCode::Forbidden)
+                                                .with_body("Unauthenticated"))),
+                    };
+
+                }
+                // Path parameters
+                let path = uri.path().to_string();
+                let path_params =
+                    paths::REGEX_NUMBERS_ACCOUNT_ALLOCATED_NUMBER_CONFIG
+                    .captures(&path)
+                    .unwrap_or_else(||
+                        panic!("Path {} matched RE NUMBERS_ACCOUNT_ALLOCATED_NUMBER_CONFIG in set but failed match against \"{}\"", path, paths::REGEX_NUMBERS_ACCOUNT_ALLOCATED_NUMBER_CONFIG.as_str())
+                    );
+                let param_account = match percent_encoding::percent_decode(path_params["account"].as_bytes()).decode_utf8() {
+                    Ok(param_account) => match param_account.parse::<String>() {
+                        Ok(param_account) => param_account,
+                        Err(e) => return Box::new(future::ok(Response::new().with_status(StatusCode::BadRequest).with_body(format!("Couldn't parse path parameter account: {:?}", e)))),
+                    },
+                    Err(_) => return Box::new(future::ok(Response::new().with_status(StatusCode::BadRequest).with_body(format!("Couldn't percent-decode path parameter as UTF-8: {}", &path_params["account"]))))
+                };
+                let param_number = match percent_encoding::percent_decode(path_params["number"].as_bytes()).decode_utf8() {
+                    Ok(param_number) => match param_number.parse::<String>() {
+                        Ok(param_number) => param_number,
+                        Err(e) => return Box::new(future::ok(Response::new().with_status(StatusCode::BadRequest).with_body(format!("Couldn't parse path parameter number: {:?}", e)))),
+                    },
+                    Err(_) => return Box::new(future::ok(Response::new().with_status(StatusCode::BadRequest).with_body(format!("Couldn't percent-decode path parameter as UTF-8: {}", &path_params["number"]))))
+                };
+                Box::new({
+                        {{
+                                Box::new(api_impl.delete_number_config(param_account, param_number, &context)
+                                    .then(move |result| {
+                                        let mut response = Response::new();
+                                        response.headers_mut().set(XSpanId((&context as &Has<XSpanIdString>).get().0.to_string()));
+
+                                        match result {
+                                            Ok(rsp) => match rsp {
+                                                DeleteNumberConfigResponse::Success
+
+
+                                                => {
+                                                    response.set_status(StatusCode::try_from(200).unwrap());
+
+                                                },
+                                                DeleteNumberConfigResponse::NumberNotAllocated
 
 
                                                 => {
@@ -548,6 +628,86 @@ where
                 }) as Box<Future<Item=Response, Error=Error>>
             },
 
+            // GetNumberConfig - GET /numbers/{account}/allocated/{number}/config
+            &hyper::Method::Get if path.matched(paths::ID_NUMBERS_ACCOUNT_ALLOCATED_NUMBER_CONFIG) => {
+                {
+                    let authorization = match (&context as &Has<Option<Authorization>>).get() {
+                        &Some(ref authorization) => authorization,
+                        &None => return Box::new(future::ok(Response::new()
+                                                .with_status(StatusCode::Forbidden)
+                                                .with_body("Unauthenticated"))),
+                    };
+
+                }
+                // Path parameters
+                let path = uri.path().to_string();
+                let path_params =
+                    paths::REGEX_NUMBERS_ACCOUNT_ALLOCATED_NUMBER_CONFIG
+                    .captures(&path)
+                    .unwrap_or_else(||
+                        panic!("Path {} matched RE NUMBERS_ACCOUNT_ALLOCATED_NUMBER_CONFIG in set but failed match against \"{}\"", path, paths::REGEX_NUMBERS_ACCOUNT_ALLOCATED_NUMBER_CONFIG.as_str())
+                    );
+                let param_account = match percent_encoding::percent_decode(path_params["account"].as_bytes()).decode_utf8() {
+                    Ok(param_account) => match param_account.parse::<String>() {
+                        Ok(param_account) => param_account,
+                        Err(e) => return Box::new(future::ok(Response::new().with_status(StatusCode::BadRequest).with_body(format!("Couldn't parse path parameter account: {:?}", e)))),
+                    },
+                    Err(_) => return Box::new(future::ok(Response::new().with_status(StatusCode::BadRequest).with_body(format!("Couldn't percent-decode path parameter as UTF-8: {}", &path_params["account"]))))
+                };
+                let param_number = match percent_encoding::percent_decode(path_params["number"].as_bytes()).decode_utf8() {
+                    Ok(param_number) => match param_number.parse::<String>() {
+                        Ok(param_number) => param_number,
+                        Err(e) => return Box::new(future::ok(Response::new().with_status(StatusCode::BadRequest).with_body(format!("Couldn't parse path parameter number: {:?}", e)))),
+                    },
+                    Err(_) => return Box::new(future::ok(Response::new().with_status(StatusCode::BadRequest).with_body(format!("Couldn't percent-decode path parameter as UTF-8: {}", &path_params["number"]))))
+                };
+                Box::new({
+                        {{
+                                Box::new(api_impl.get_number_config(param_account, param_number, &context)
+                                    .then(move |result| {
+                                        let mut response = Response::new();
+                                        response.headers_mut().set(XSpanId((&context as &Has<XSpanIdString>).get().0.to_string()));
+
+                                        match result {
+                                            Ok(rsp) => match rsp {
+                                                GetNumberConfigResponse::Success
+
+                                                    (body)
+
+
+                                                => {
+                                                    response.set_status(StatusCode::try_from(200).unwrap());
+
+                                                    response.headers_mut().set(ContentType(mimetypes::responses::GET_NUMBER_CONFIG_SUCCESS.clone()));
+
+
+                                                    let body = serde_json::to_string(&body).expect("impossible to fail to serialize");
+
+                                                    response.set_body(body);
+                                                },
+                                                GetNumberConfigResponse::NumberNotAllocated
+
+
+                                                => {
+                                                    response.set_status(StatusCode::try_from(404).unwrap());
+
+                                                },
+                                            },
+                                            Err(_) => {
+                                                // Application code returned an error. This should not happen, as the implementation should
+                                                // return a valid response.
+                                                response.set_status(StatusCode::InternalServerError);
+                                                response.set_body("An internal error occurred");
+                                            },
+                                        }
+
+                                        future::ok(response)
+                                    }
+                                ))
+                        }}
+                }) as Box<Future<Item=Response, Error=Error>>
+            },
+
             // GetNumberRanges - GET /numbers/{account}/ranges
             &hyper::Method::Get if path.matched(paths::ID_NUMBERS_ACCOUNT_RANGES) => {
                 {
@@ -684,6 +844,111 @@ where
                                 ))
                         }}
                 }) as Box<Future<Item=Response, Error=Error>>
+            },
+
+            // PutNumberConfig - PUT /numbers/{account}/allocated/{number}/config
+            &hyper::Method::Put if path.matched(paths::ID_NUMBERS_ACCOUNT_ALLOCATED_NUMBER_CONFIG) => {
+                {
+                    let authorization = match (&context as &Has<Option<Authorization>>).get() {
+                        &Some(ref authorization) => authorization,
+                        &None => return Box::new(future::ok(Response::new()
+                                                .with_status(StatusCode::Forbidden)
+                                                .with_body("Unauthenticated"))),
+                    };
+
+                }
+                // Path parameters
+                let path = uri.path().to_string();
+                let path_params =
+                    paths::REGEX_NUMBERS_ACCOUNT_ALLOCATED_NUMBER_CONFIG
+                    .captures(&path)
+                    .unwrap_or_else(||
+                        panic!("Path {} matched RE NUMBERS_ACCOUNT_ALLOCATED_NUMBER_CONFIG in set but failed match against \"{}\"", path, paths::REGEX_NUMBERS_ACCOUNT_ALLOCATED_NUMBER_CONFIG.as_str())
+                    );
+                let param_account = match percent_encoding::percent_decode(path_params["account"].as_bytes()).decode_utf8() {
+                    Ok(param_account) => match param_account.parse::<String>() {
+                        Ok(param_account) => param_account,
+                        Err(e) => return Box::new(future::ok(Response::new().with_status(StatusCode::BadRequest).with_body(format!("Couldn't parse path parameter account: {:?}", e)))),
+                    },
+                    Err(_) => return Box::new(future::ok(Response::new().with_status(StatusCode::BadRequest).with_body(format!("Couldn't percent-decode path parameter as UTF-8: {}", &path_params["account"]))))
+                };
+                let param_number = match percent_encoding::percent_decode(path_params["number"].as_bytes()).decode_utf8() {
+                    Ok(param_number) => match param_number.parse::<String>() {
+                        Ok(param_number) => param_number,
+                        Err(e) => return Box::new(future::ok(Response::new().with_status(StatusCode::BadRequest).with_body(format!("Couldn't parse path parameter number: {:?}", e)))),
+                    },
+                    Err(_) => return Box::new(future::ok(Response::new().with_status(StatusCode::BadRequest).with_body(format!("Couldn't percent-decode path parameter as UTF-8: {}", &path_params["number"]))))
+                };
+                // Body parameters (note that non-required body parameters will ignore garbage
+                // values, rather than causing a 400 response). Produce warning header and logs for
+                // any unused fields.
+                Box::new(body.concat2()
+                    .then(move |result| -> Box<Future<Item=Response, Error=Error>> {
+                        match result {
+                            Ok(body) => {
+                                let mut unused_elements = Vec::new();
+                                let param_number_config: Option<models::NumberConfig> = if !body.is_empty() {
+                                    let deserializer = &mut serde_json::Deserializer::from_slice(&*body);
+                                    match serde_ignored::deserialize(deserializer, |path| {
+                                            warn!("Ignoring unknown field in body: {}", path);
+                                            unused_elements.push(path.to_string());
+                                    }) {
+                                        Ok(param_number_config) => param_number_config,
+                                        Err(_) => None,
+                                    }
+                                } else {
+                                    None
+                                };
+                                Box::new(api_impl.put_number_config(param_account, param_number, param_number_config, &context)
+                                    .then(move |result| {
+                                        let mut response = Response::new();
+                                        response.headers_mut().set(XSpanId((&context as &Has<XSpanIdString>).get().0.to_string()));
+
+                                        if !unused_elements.is_empty() {
+                                            response.headers_mut().set(Warning(format!("Ignoring unknown fields in body: {:?}", unused_elements)));
+                                        }
+
+                                        match result {
+                                            Ok(rsp) => match rsp {
+                                                PutNumberConfigResponse::Success
+
+                                                    (body)
+
+
+                                                => {
+                                                    response.set_status(StatusCode::try_from(200).unwrap());
+
+                                                    response.headers_mut().set(ContentType(mimetypes::responses::PUT_NUMBER_CONFIG_SUCCESS.clone()));
+
+
+                                                    let body = serde_json::to_string(&body).expect("impossible to fail to serialize");
+
+                                                    response.set_body(body);
+                                                },
+                                                PutNumberConfigResponse::NumberNotAllocated
+
+
+                                                => {
+                                                    response.set_status(StatusCode::try_from(404).unwrap());
+
+                                                },
+                                            },
+                                            Err(_) => {
+                                                // Application code returned an error. This should not happen, as the implementation should
+                                                // return a valid response.
+                                                response.set_status(StatusCode::InternalServerError);
+                                                response.set_body("An internal error occurred");
+                                            },
+                                        }
+
+                                        future::ok(response)
+                                    }
+                                ))
+                            },
+                            Err(e) => Box::new(future::ok(Response::new().with_status(StatusCode::BadRequest).with_body(format!("Couldn't read body parameter NumberConfig: {}", e)))),
+                        }
+                    })
+                ) as Box<Future<Item=Response, Error=Error>>
             },
 
             // DeleteOutboundAclIp - DELETE /voice/{account}/outbound/{trunk}/acl/{ip}
@@ -1155,10 +1420,14 @@ where
                                             unused_elements.push(path.to_string());
                                     }) {
                                         Ok(param_outbound_trunk) => param_outbound_trunk,
-                                        Err(_) => None,
+                                        Err(e) => return Box::new(future::ok(Response::new().with_status(StatusCode::BadRequest).with_body(format!("Couldn't parse body parameter OutboundTrunk - doesn't match schema: {}", e)))),
                                     }
                                 } else {
                                     None
+                                };
+                                let param_outbound_trunk = match param_outbound_trunk {
+                                    Some(param_outbound_trunk) => param_outbound_trunk,
+                                    None => return Box::new(future::ok(Response::new().with_status(StatusCode::BadRequest).with_body("Missing required body parameter OutboundTrunk"))),
                                 };
                                 Box::new(api_impl.put_outbound_trunk(param_account, param_trunk, param_outbound_trunk, &context)
                                     .then(move |result| {
@@ -1333,6 +1602,9 @@ impl RequestParser for ApiRequestParser {
             // DeleteAllocatedNumber - DELETE /numbers/{account}/allocated/{number}
             &hyper::Method::Delete if path.matched(paths::ID_NUMBERS_ACCOUNT_ALLOCATED_NUMBER) => Ok("DeleteAllocatedNumber"),
 
+            // DeleteNumberConfig - DELETE /numbers/{account}/allocated/{number}/config
+            &hyper::Method::Delete if path.matched(paths::ID_NUMBERS_ACCOUNT_ALLOCATED_NUMBER_CONFIG) => Ok("DeleteNumberConfig"),
+
             // GetAllocatedNumber - GET /numbers/{account}/allocated/{number}
             &hyper::Method::Get if path.matched(paths::ID_NUMBERS_ACCOUNT_ALLOCATED_NUMBER) => Ok("GetAllocatedNumber"),
 
@@ -1342,11 +1614,17 @@ impl RequestParser for ApiRequestParser {
             // GetAvailableNumbers - GET /numbers/{account}/available/{tier}/{number}
             &hyper::Method::Get if path.matched(paths::ID_NUMBERS_ACCOUNT_AVAILABLE_TIER_NUMBER) => Ok("GetAvailableNumbers"),
 
+            // GetNumberConfig - GET /numbers/{account}/allocated/{number}/config
+            &hyper::Method::Get if path.matched(paths::ID_NUMBERS_ACCOUNT_ALLOCATED_NUMBER_CONFIG) => Ok("GetNumberConfig"),
+
             // GetNumberRanges - GET /numbers/{account}/ranges
             &hyper::Method::Get if path.matched(paths::ID_NUMBERS_ACCOUNT_RANGES) => Ok("GetNumberRanges"),
 
             // PutAllocatedNumber - PUT /numbers/{account}/allocated/{number}
             &hyper::Method::Put if path.matched(paths::ID_NUMBERS_ACCOUNT_ALLOCATED_NUMBER) => Ok("PutAllocatedNumber"),
+
+            // PutNumberConfig - PUT /numbers/{account}/allocated/{number}/config
+            &hyper::Method::Put if path.matched(paths::ID_NUMBERS_ACCOUNT_ALLOCATED_NUMBER_CONFIG) => Ok("PutNumberConfig"),
 
             // DeleteOutboundAclIp - DELETE /voice/{account}/outbound/{trunk}/acl/{ip}
             &hyper::Method::Delete if path.matched(paths::ID_VOICE_ACCOUNT_OUTBOUND_TRUNK_ACL_IP) => Ok("DeleteOutboundAclIp"),

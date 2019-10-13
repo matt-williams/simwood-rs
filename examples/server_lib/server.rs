@@ -12,11 +12,14 @@ use swagger::{Has, XSpanIdString};
 use simwood_rs::{Api, ApiError,
                       GetAccountTypeResponse,
                       DeleteAllocatedNumberResponse,
+                      DeleteNumberConfigResponse,
                       GetAllocatedNumberResponse,
                       GetAllocatedNumbersResponse,
                       GetAvailableNumbersResponse,
+                      GetNumberConfigResponse,
                       GetNumberRangesResponse,
                       PutAllocatedNumberResponse,
+                      PutNumberConfigResponse,
                       DeleteOutboundAclIpResponse,
                       DeleteOutboundTrunkResponse,
                       GetOutboundAclIpsResponse,
@@ -56,6 +59,13 @@ impl<C> Api<C> for Server<C> where C: Has<XSpanIdString>{
         Box::new(futures::failed("Generic failure".into()))
     }
 
+    /// De-configure the configuration of number
+    fn delete_number_config(&self, account: String, number: String, context: &C) -> Box<Future<Item=DeleteNumberConfigResponse, Error=ApiError>> {
+        let context = context.clone();
+        println!("delete_number_config(\"{}\", \"{}\") - X-Span-ID: {:?}", account, number, context.get().0.clone());
+        Box::new(futures::failed("Generic failure".into()))
+    }
+
     /// Return configuration information on allocated number
     fn get_allocated_number(&self, account: String, number: String, context: &C) -> Box<Future<Item=GetAllocatedNumberResponse, Error=ApiError>> {
         let context = context.clone();
@@ -77,6 +87,13 @@ impl<C> Api<C> for Server<C> where C: Has<XSpanIdString>{
         Box::new(futures::failed("Generic failure".into()))
     }
 
+    /// Return configuration information on allocated number
+    fn get_number_config(&self, account: String, number: String, context: &C) -> Box<Future<Item=GetNumberConfigResponse, Error=ApiError>> {
+        let context = context.clone();
+        println!("get_number_config(\"{}\", \"{}\") - X-Span-ID: {:?}", account, number, context.get().0.clone());
+        Box::new(futures::failed("Generic failure".into()))
+    }
+
     /// Retrieves a list of all available number ranges, including descriptions
     fn get_number_ranges(&self, account: String, context: &C) -> Box<Future<Item=GetNumberRangesResponse, Error=ApiError>> {
         let context = context.clone();
@@ -88,6 +105,13 @@ impl<C> Api<C> for Server<C> where C: Has<XSpanIdString>{
     fn put_allocated_number(&self, account: String, number: String, context: &C) -> Box<Future<Item=PutAllocatedNumberResponse, Error=ApiError>> {
         let context = context.clone();
         println!("put_allocated_number(\"{}\", \"{}\") - X-Span-ID: {:?}", account, number, context.get().0.clone());
+        Box::new(futures::failed("Generic failure".into()))
+    }
+
+    /// Replace active configuration for number
+    fn put_number_config(&self, account: String, number: String, number_config: Option<models::NumberConfig>, context: &C) -> Box<Future<Item=PutNumberConfigResponse, Error=ApiError>> {
+        let context = context.clone();
+        println!("put_number_config(\"{}\", \"{}\", {:?}) - X-Span-ID: {:?}", account, number, number_config, context.get().0.clone());
         Box::new(futures::failed("Generic failure".into()))
     }
 
@@ -134,7 +158,7 @@ impl<C> Api<C> for Server<C> where C: Has<XSpanIdString>{
     }
 
     /// Create new trunk or update existing trunk
-    fn put_outbound_trunk(&self, account: String, trunk: String, outbound_trunk: Option<models::OutboundTrunk>, context: &C) -> Box<Future<Item=PutOutboundTrunkResponse, Error=ApiError>> {
+    fn put_outbound_trunk(&self, account: String, trunk: String, outbound_trunk: models::OutboundTrunk, context: &C) -> Box<Future<Item=PutOutboundTrunkResponse, Error=ApiError>> {
         let context = context.clone();
         println!("put_outbound_trunk(\"{}\", \"{}\", {:?}) - X-Span-ID: {:?}", account, trunk, outbound_trunk, context.get().0.clone());
         Box::new(futures::failed("Generic failure".into()))

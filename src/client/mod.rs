@@ -37,11 +37,14 @@ use swagger::{ApiError, XSpanId, XSpanIdString, Has, AuthData};
 use {Api,
      GetAccountTypeResponse,
      DeleteAllocatedNumberResponse,
+     DeleteNumberConfigResponse,
      GetAllocatedNumberResponse,
      GetAllocatedNumbersResponse,
      GetAvailableNumbersResponse,
+     GetNumberConfigResponse,
      GetNumberRangesResponse,
      PutAllocatedNumberResponse,
+     PutNumberConfigResponse,
      DeleteOutboundAclIpResponse,
      DeleteOutboundTrunkResponse,
      GetOutboundAclIpsResponse,
@@ -424,6 +427,88 @@ impl<F, C> Api<C> for Client<F> where
 
     }
 
+    fn delete_number_config(&self, param_account: String, param_number: String, context: &C) -> Box<Future<Item=DeleteNumberConfigResponse, Error=ApiError>> {
+        let mut uri = format!(
+            "{}/v3/numbers/{account}/allocated/{number}/config",
+            self.base_path, account=utf8_percent_encode(&param_account.to_string(), ID_ENCODE_SET), number=utf8_percent_encode(&param_number.to_string(), ID_ENCODE_SET)
+        );
+
+        let mut query_string = self::url::form_urlencoded::Serializer::new("".to_owned());
+
+
+        let query_string_str = query_string.finish();
+        if !query_string_str.is_empty() {
+            uri += "?";
+            uri += &query_string_str;
+        }
+
+        let uri = match Uri::from_str(&uri) {
+            Ok(uri) => uri,
+            Err(err) => return Box::new(futures::done(Err(ApiError(format!("Unable to build URI: {}", err))))),
+        };
+
+        let mut request = hyper::Request::new(hyper::Method::Delete, uri);
+
+
+        request.headers_mut().set(XSpanId((context as &Has<XSpanIdString>).get().0.clone()));
+
+        (context as &Has<Option<AuthData>>).get().as_ref().map(|auth_data| {
+            // Currently only authentication with Basic, API Key, and Bearer are supported
+            match auth_data {
+                &AuthData::Basic(ref basic_header) => {
+                    request.headers_mut().set(hyper::header::Authorization(
+                        basic_header.clone(),
+                    ))
+                },
+                _ => {}
+            }
+        });
+        Box::new(self.client_service.call(request)
+                             .map_err(|e| ApiError(format!("No response received: {}", e)))
+                             .and_then(|mut response| {
+            match response.status().as_u16() {
+                200 => {
+                    let body = response.body();
+                    Box::new(
+
+                        future::ok(
+                            DeleteNumberConfigResponse::Success
+                        )
+                    ) as Box<Future<Item=_, Error=_>>
+                },
+                404 => {
+                    let body = response.body();
+                    Box::new(
+
+                        future::ok(
+                            DeleteNumberConfigResponse::NumberNotAllocated
+                        )
+                    ) as Box<Future<Item=_, Error=_>>
+                },
+                code => {
+                    let headers = response.headers().clone();
+                    Box::new(response.body()
+                            .take(100)
+                            .concat2()
+                            .then(move |body|
+                                future::err(ApiError(format!("Unexpected response code {}:\n{:?}\n\n{}",
+                                    code,
+                                    headers,
+                                    match body {
+                                        Ok(ref body) => match str::from_utf8(body) {
+                                            Ok(body) => Cow::from(body),
+                                            Err(e) => Cow::from(format!("<Body was not UTF8: {:?}>", e)),
+                                        },
+                                        Err(e) => Cow::from(format!("<Failed to read body: {}>", e)),
+                                    })))
+                            )
+                    ) as Box<Future<Item=_, Error=_>>
+                }
+            }
+        }))
+
+    }
+
     fn get_allocated_number(&self, param_account: String, param_number: String, context: &C) -> Box<Future<Item=GetAllocatedNumberResponse, Error=ApiError>> {
         let mut uri = format!(
             "{}/v3/numbers/{account}/allocated/{number}",
@@ -694,6 +779,101 @@ impl<F, C> Api<C> for Client<F> where
 
     }
 
+    fn get_number_config(&self, param_account: String, param_number: String, context: &C) -> Box<Future<Item=GetNumberConfigResponse, Error=ApiError>> {
+        let mut uri = format!(
+            "{}/v3/numbers/{account}/allocated/{number}/config",
+            self.base_path, account=utf8_percent_encode(&param_account.to_string(), ID_ENCODE_SET), number=utf8_percent_encode(&param_number.to_string(), ID_ENCODE_SET)
+        );
+
+        let mut query_string = self::url::form_urlencoded::Serializer::new("".to_owned());
+
+
+        let query_string_str = query_string.finish();
+        if !query_string_str.is_empty() {
+            uri += "?";
+            uri += &query_string_str;
+        }
+
+        let uri = match Uri::from_str(&uri) {
+            Ok(uri) => uri,
+            Err(err) => return Box::new(futures::done(Err(ApiError(format!("Unable to build URI: {}", err))))),
+        };
+
+        let mut request = hyper::Request::new(hyper::Method::Get, uri);
+
+
+        request.headers_mut().set(XSpanId((context as &Has<XSpanIdString>).get().0.clone()));
+
+        (context as &Has<Option<AuthData>>).get().as_ref().map(|auth_data| {
+            // Currently only authentication with Basic, API Key, and Bearer are supported
+            match auth_data {
+                &AuthData::Basic(ref basic_header) => {
+                    request.headers_mut().set(hyper::header::Authorization(
+                        basic_header.clone(),
+                    ))
+                },
+                _ => {}
+            }
+        });
+        Box::new(self.client_service.call(request)
+                             .map_err(|e| ApiError(format!("No response received: {}", e)))
+                             .and_then(|mut response| {
+            match response.status().as_u16() {
+                200 => {
+                    let body = response.body();
+                    Box::new(
+                        body
+                        .concat2()
+                        .map_err(|e| ApiError(format!("Failed to read response: {}", e)))
+                        .and_then(|body|
+
+                        str::from_utf8(&body)
+                                             .map_err(|e| ApiError(format!("Response was not valid UTF8: {}", e)))
+                                             .and_then(|body|
+
+                                                 serde_json::from_str::<models::NumberConfig>(body)
+                                                     .map_err(|e| e.into())
+                                             )
+
+                                 )
+                        .map(move |body| {
+                            GetNumberConfigResponse::Success(body)
+                        })
+                    ) as Box<Future<Item=_, Error=_>>
+                },
+                404 => {
+                    let body = response.body();
+                    Box::new(
+
+                        future::ok(
+                            GetNumberConfigResponse::NumberNotAllocated
+                        )
+                    ) as Box<Future<Item=_, Error=_>>
+                },
+                code => {
+                    let headers = response.headers().clone();
+                    Box::new(response.body()
+                            .take(100)
+                            .concat2()
+                            .then(move |body|
+                                future::err(ApiError(format!("Unexpected response code {}:\n{:?}\n\n{}",
+                                    code,
+                                    headers,
+                                    match body {
+                                        Ok(ref body) => match str::from_utf8(body) {
+                                            Ok(body) => Cow::from(body),
+                                            Err(e) => Cow::from(format!("<Body was not UTF8: {:?}>", e)),
+                                        },
+                                        Err(e) => Cow::from(format!("<Failed to read body: {}>", e)),
+                                    })))
+                            )
+                    ) as Box<Future<Item=_, Error=_>>
+                }
+            }
+        }))
+
+    }
+
     fn get_number_ranges(&self, param_account: String, context: &C) -> Box<Future<Item=GetNumberRangesResponse, Error=ApiError>> {
         let mut uri = format!(
             "{}/v3/numbers/{account}/ranges",
@@ -835,6 +1015,110 @@ impl<F, C> Api<C> for Client<F> where
 
                         future::ok(
                             PutAllocatedNumberResponse::NumberNotAvailable
+                        )
+                    ) as Box<Future<Item=_, Error=_>>
+                },
+                code => {
+                    let headers = response.headers().clone();
+                    Box::new(response.body()
+                            .take(100)
+                            .concat2()
+                            .then(move |body|
+                                future::err(ApiError(format!("Unexpected response code {}:\n{:?}\n\n{}",
+                                    code,
+                                    headers,
+                                    match body {
+                                        Ok(ref body) => match str::from_utf8(body) {
+                                            Ok(body) => Cow::from(body),
+                                            Err(e) => Cow::from(format!("<Body was not UTF8: {:?}>", e)),
+                                        },
+                                        Err(e) => Cow::from(format!("<Failed to read body: {}>", e)),
+                                    })))
+                            )
+                    ) as Box<Future<Item=_, Error=_>>
+                }
+            }
+        }))
+
+    }
+
+    fn put_number_config(&self, param_account: String, param_number: String, param_number_config: Option<models::NumberConfig>, context: &C) -> Box<Future<Item=PutNumberConfigResponse, Error=ApiError>> {
+        let mut uri = format!(
+            "{}/v3/numbers/{account}/allocated/{number}/config",
+            self.base_path, account=utf8_percent_encode(&param_account.to_string(), ID_ENCODE_SET), number=utf8_percent_encode(&param_number.to_string(), ID_ENCODE_SET)
+        );
+
+        let mut query_string = self::url::form_urlencoded::Serializer::new("".to_owned());
+
+
+        let query_string_str = query_string.finish();
+        if !query_string_str.is_empty() {
+            uri += "?";
+            uri += &query_string_str;
+        }
+
+        let uri = match Uri::from_str(&uri) {
+            Ok(uri) => uri,
+            Err(err) => return Box::new(futures::done(Err(ApiError(format!("Unable to build URI: {}", err))))),
+        };
+
+        let mut request = hyper::Request::new(hyper::Method::Put, uri);
+
+        let body = param_number_config.map(|ref body| {
+            serde_json::to_string(body).expect("impossible to fail to serialize")
+        });
+
+        if let Some(body) = body {
+        request.set_body(body);
+        }
+
+        request.headers_mut().set(ContentType(mimetypes::requests::PUT_NUMBER_CONFIG.clone()));
+
+        request.headers_mut().set(XSpanId((context as &Has<XSpanIdString>).get().0.clone()));
+
+        (context as &Has<Option<AuthData>>).get().as_ref().map(|auth_data| {
+            // Currently only authentication with Basic, API Key, and Bearer are supported
+            match auth_data {
+                &AuthData::Basic(ref basic_header) => {
+                    request.headers_mut().set(hyper::header::Authorization(
+                        basic_header.clone(),
+                    ))
+                },
+                _ => {}
+            }
+        });
+        Box::new(self.client_service.call(request)
+                             .map_err(|e| ApiError(format!("No response received: {}", e)))
+                             .and_then(|mut response| {
+            match response.status().as_u16() {
+                200 => {
+                    let body = response.body();
+                    Box::new(
+                        body
+                        .concat2()
+                        .map_err(|e| ApiError(format!("Failed to read response: {}", e)))
+                        .and_then(|body|
+
+                        str::from_utf8(&body)
+                                             .map_err(|e| ApiError(format!("Response was not valid UTF8: {}", e)))
+                                             .and_then(|body|
+
+                                                 serde_json::from_str::<models::PutNumberConfigResponse>(body)
+                                                     .map_err(|e| e.into())
+                                             )
+
+                                 )
+                        .map(move |body| {
+                            PutNumberConfigResponse::Success(body)
+                        })
+                    ) as Box<Future<Item=_, Error=_>>
+                },
+                404 => {
+                    let body = response.body();
+                    Box::new(
+
+                        future::ok(
+                            PutNumberConfigResponse::NumberNotAllocated
                         )
                     ) as Box<Future<Item=_, Error=_>>
                 },
@@ -1339,7 +1623,7 @@ impl<F, C> Api<C> for Client<F> where
 
     }
 
-    fn put_outbound_trunk(&self, param_account: String, param_trunk: String, param_outbound_trunk: Option<models::OutboundTrunk>, context: &C) -> Box<Future<Item=PutOutboundTrunkResponse, Error=ApiError>> {
+    fn put_outbound_trunk(&self, param_account: String, param_trunk: String, param_outbound_trunk: models::OutboundTrunk, context: &C) -> Box<Future<Item=PutOutboundTrunkResponse, Error=ApiError>> {
         let mut uri = format!(
             "{}/v3/voice/{account}/outbound/{trunk}",
             self.base_path, account=utf8_percent_encode(&param_account.to_string(), ID_ENCODE_SET), trunk=utf8_percent_encode(&param_trunk.to_string(), ID_ENCODE_SET)
@@ -1361,13 +1645,8 @@ impl<F, C> Api<C> for Client<F> where
 
         let mut request = hyper::Request::new(hyper::Method::Put, uri);
 
-        let body = param_outbound_trunk.map(|ref body| {
-            serde_json::to_string(body).expect("impossible to fail to serialize")
-        });
-
-        if let Some(body) = body {
+        let body = serde_json::to_string(&param_outbound_trunk).expect("impossible to fail to serialize");
         request.set_body(body);
-        }
 
         request.headers_mut().set(ContentType(mimetypes::requests::PUT_OUTBOUND_TRUNK.clone()));
 

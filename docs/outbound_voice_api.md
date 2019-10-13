@@ -177,7 +177,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **putOutboundTrunk**
-> models::OutboundTrunk putOutboundTrunk(ctx, account, trunk, optional)
+> models::OutboundTrunk putOutboundTrunk(ctx, account, trunk, outbound_trunk)
 Create new trunk or update existing trunk
 
 ### Required Parameters
@@ -187,16 +187,7 @@ Name | Type | Description  | Notes
  **ctx** | **context.Context** | context containing the authentication | nil if no authentication
   **account** | **String**|  | 
   **trunk** | **String**|  | 
- **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
-
-### Optional Parameters
-Optional parameters are passed through a map[string]interface{}.
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **account** | **String**|  | 
- **trunk** | **String**|  | 
- **outbound_trunk** | [**OutboundTrunk**](OutboundTrunk.md)| Trunk to create or update | 
+  **outbound_trunk** | [**OutboundTrunk**](OutboundTrunk.md)| Trunk to create or update | 
 
 ### Return type
 

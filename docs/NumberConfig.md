@@ -1,10 +1,10 @@
-# AccountTypeResponse
+# NumberConfig
 
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**success** | **bool** |  | 
-**data** | [***models::AccountType**](AccountType.md) |  | [optional] [default to None]
+**options** | [***models::NumberConfigOptions**](NumberConfigOptions.md) |  | [optional] [default to None]
+**routing** | [**HashMap<String, Vec<Vec<models::RoutingEntry>>>**](array.md) |  | [optional] [default to None]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

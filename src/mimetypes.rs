@@ -26,8 +26,18 @@ pub mod responses {
     }
 
     lazy_static! {
+        /// Create Mime objects for the response content types for GetNumberConfig
+        pub static ref GET_NUMBER_CONFIG_SUCCESS: Mime = "application/json".parse().unwrap();
+    }
+
+    lazy_static! {
         /// Create Mime objects for the response content types for GetNumberRanges
         pub static ref GET_NUMBER_RANGES_SUCCESS: Mime = "application/json".parse().unwrap();
+    }
+
+    lazy_static! {
+        /// Create Mime objects for the response content types for PutNumberConfig
+        pub static ref PUT_NUMBER_CONFIG_SUCCESS: Mime = "application/json".parse().unwrap();
     }
 
     lazy_static! {
@@ -69,6 +79,11 @@ pub mod responses {
 
 pub mod requests {
     use hyper::mime::*;
+
+    lazy_static! {
+        /// Create Mime objects for the request content types for PutNumberConfig
+        pub static ref PUT_NUMBER_CONFIG: Mime = "application/json".parse().unwrap();
+    }
 
     lazy_static! {
         /// Create Mime objects for the request content types for PutOutboundTrunk
